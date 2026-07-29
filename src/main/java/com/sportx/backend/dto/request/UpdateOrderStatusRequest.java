@@ -1,0 +1,12 @@
+package com.sportx.backend.dto.request;
+
+import com.sportx.backend.enums.OrderStatus;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class UpdateOrderStatusRequest {
+
+    @NotNull
+    private OrderStatus status;
+}
