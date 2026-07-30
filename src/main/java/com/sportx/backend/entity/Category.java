@@ -26,6 +26,7 @@ public class Category {
 
     private String imageUrl;
 
+    @Builder.Default
     @OneToMany(mappedBy = "category")
     private List<Product> products = new ArrayList<>();
 }

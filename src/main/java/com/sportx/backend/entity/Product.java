@@ -43,6 +43,7 @@ public class Product {
     @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 
@@ -54,9 +55,11 @@ public class Product {
 
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "product")
     private List<Review> reviews = new ArrayList<>();
 

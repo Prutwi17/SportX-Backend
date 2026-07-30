@@ -26,6 +26,7 @@ public class Brand {
 
     private String imageUrl;
 
+    @Builder.Default
     @OneToMany(mappedBy = "brand")
     private List<Product> products = new ArrayList<>();
 }
