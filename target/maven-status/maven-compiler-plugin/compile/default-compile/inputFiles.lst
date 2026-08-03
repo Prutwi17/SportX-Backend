@@ -12,12 +12,15 @@ C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\b
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\service\impl\DashboardServiceImpl.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\exception\BadRequestException.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\repository\OrderItemRepository.java
+C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\config\WebConfig.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\security\JwtAuthenticationFilter.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\controller\DashboardController.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\OrderDTO.java
+C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\ForgotPasswordResponse.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\CartItemDTO.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\controller\ProductController.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\OrderStatusRequest.java
+C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\ForgotPasswordRequest.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\CouponRequest.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\repository\CartItemRepository.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\entity\Payment.java
@@ -59,6 +62,7 @@ C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\b
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\CartItemRequest.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\OrderRequest.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\PaymentDTO.java
+C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\ResetPasswordRequest.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\service\impl\AuthServiceImpl.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\controller\CategoryController.java
 C:\Users\pruth\OneDrive - MSFT\Desktop\SportX\backend\src\main\java\com\sportx\backend\dto\PagedResponse.java

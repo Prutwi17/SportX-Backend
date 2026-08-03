@@ -23,6 +23,7 @@ com\sportx\backend\controller\AddressController.class
 com\sportx\backend\security\SecurityConfig.class
 com\sportx\backend\controller\InventoryController.class
 com\sportx\backend\dto\OrderItemDTO.class
+com\sportx\backend\config\WebConfig.class
 com\sportx\backend\service\impl\AuthServiceImpl.class
 com\sportx\backend\dto\CartItemDTO.class
 com\sportx\backend\dto\ReviewDTO.class
@@ -54,6 +55,7 @@ com\sportx\backend\service\impl\PaymentServiceImpl.class
 com\sportx\backend\service\AuthService.class
 com\sportx\backend\service\impl\BrandServiceImpl.class
 com\sportx\backend\dto\LoginRequest.class
+com\sportx\backend\dto\ForgotPasswordResponse.class
 com\sportx\backend\config\DataSeeder.class
 com\sportx\backend\exception\DuplicateResourceException.class
 com\sportx\backend\enums\UserRole.class
@@ -66,6 +68,7 @@ com\sportx\backend\entity\OrderItem.class
 com\sportx\backend\exception\GlobalExceptionHandler$ErrorResponse.class
 com\sportx\backend\repository\PaymentRepository.class
 com\sportx\backend\service\OrderService.class
+com\sportx\backend\dto\ForgotPasswordRequest.class
 com\sportx\backend\entity\ProductImage$ProductImageBuilder.class
 com\sportx\backend\entity\Order$OrderBuilder.class
 com\sportx\backend\exception\BadRequestException.class
@@ -90,6 +93,7 @@ com\sportx\backend\dto\BrandDTO.class
 com\sportx\backend\service\WishlistService.class
 com\sportx\backend\entity\WishlistItem$WishlistItemBuilder.class
 com\sportx\backend\dto\CouponRequest.class
+com\sportx\backend\service\impl\AuthServiceImpl$PasswordReset.class
 com\sportx\backend\service\DashboardService.class
 com\sportx\backend\controller\DashboardController.class
 com\sportx\backend\entity\ProductImage.class
@@ -102,6 +106,7 @@ com\sportx\backend\dto\CategoryRequest.class
 com\sportx\backend\enums\PaymentMethod.class
 com\sportx\backend\controller\ProductController.class
 com\sportx\backend\entity\Address.class
+com\sportx\backend\dto\ResetPasswordRequest.class
 com\sportx\backend\controller\OrderController.class
 com\sportx\backend\entity\Product.class
 com\sportx\backend\entity\Category.class

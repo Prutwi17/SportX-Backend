@@ -34,4 +34,22 @@ public class AuthController {
         authService.changePassword(userId, request);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        String token = authService.forgotPassword(request.getEmail());
+        if (token == null) {
+            return ResponseEntity.ok(new ForgotPasswordResponse(
+                    "If an account exists for that email, a reset link was sent.", null));
+        }
+        return ResponseEntity.ok(new ForgotPasswordResponse(
+                "A reset link was sent to your email.", token));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
 }

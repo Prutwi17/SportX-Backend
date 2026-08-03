@@ -76,6 +76,7 @@ public class WishlistServiceImpl implements WishlistService {
                 .findFirst().orElse(null));
         dto.setPrice(item.getProduct().getPrice());
         dto.setDiscountedPrice(item.getProduct().getDiscountedPrice());
+        dto.setStockQuantity(item.getProduct().getStockQuantity());
         return dto;
     }
 }
