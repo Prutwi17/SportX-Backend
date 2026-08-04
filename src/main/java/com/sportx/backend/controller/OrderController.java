@@ -5,6 +5,7 @@ import com.sportx.backend.dto.OrderDTO;
 import com.sportx.backend.dto.OrderRequest;
 import com.sportx.backend.dto.OrderStatusRequest;
 import com.sportx.backend.dto.PagedResponse;
+import com.sportx.backend.entity.User;
 import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.OrderService;
 import jakarta.validation.Valid;
@@ -39,16 +40,22 @@ public class OrderController {
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getOrderById(id));
+        OrderDTO order = orderService.getOrderById(id);
+        verifyOrderAccess(order.getUserId());
+        return ResponseEntity.ok(order);
     }
 
     @GetMapping("/number/{orderNumber}")
     public ResponseEntity<OrderDTO> getOrderByNumber(@PathVariable String orderNumber) {
-        return ResponseEntity.ok(orderService.getOrderByNumber(orderNumber));
+        OrderDTO order = orderService.getOrderByNumber(orderNumber);
+        verifyOrderAccess(order.getUserId());
+        return ResponseEntity.ok(order);
     }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
+        OrderDTO order = orderService.getOrderById(id);
+        verifyOrderAccess(order.getUserId());
         orderService.cancelOrder(id);
         return ResponseEntity.ok().build();
     }
@@ -57,5 +64,13 @@ public class OrderController {
     public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long id,
                                                        @Valid @RequestBody OrderStatusRequest request) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getStatus()));
+    }
+
+    private void verifyOrderAccess(Long orderUserId) {
+        User currentUser = securityUtil.getCurrentUser();
+        if (!currentUser.getRole().name().equals("ROLE_ADMIN")
+                && (orderUserId != null && !orderUserId.equals(currentUser.getId()))) {
+            throw new com.sportx.backend.exception.UnauthorizedException("Access denied to this order");
+        }
     }
 }

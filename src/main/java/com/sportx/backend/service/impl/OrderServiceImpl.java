@@ -213,6 +213,9 @@ public class OrderServiceImpl implements OrderService {
     private OrderDTO mapToDTO(Order order) {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
+        if (order.getUser() != null) {
+            dto.setUserId(order.getUser().getId());
+        }
         dto.setOrderNumber(order.getOrderNumber());
         dto.setSubtotal(order.getSubtotal());
         dto.setShippingCost(order.getShippingCost());
@@ -221,6 +224,15 @@ public class OrderServiceImpl implements OrderService {
         dto.setTotal(order.getTotal());
         dto.setStatus(order.getStatus().name());
         dto.setPaymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod().name() : null);
+
+        Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
+        if (payment != null) {
+            dto.setPaymentStatus(payment.getStatus().name());
+            dto.setTransactionId(payment.getTransactionId());
+        } else {
+            dto.setPaymentStatus("PENDING");
+        }
+
         dto.setCouponCode(order.getCouponCode());
         dto.setNotes(order.getNotes());
         dto.setCreatedAt(order.getCreatedAt());
@@ -242,6 +254,12 @@ public class OrderServiceImpl implements OrderService {
             itemDTO.setId(item.getId());
             itemDTO.setProductId(item.getProduct().getId());
             itemDTO.setProductName(item.getProductName());
+            if (item.getProduct() != null) {
+                itemDTO.setProductDescription(item.getProduct().getDescription());
+                if (item.getProduct().getCategory() != null) {
+                    itemDTO.setCategoryName(item.getProduct().getCategory().getName());
+                }
+            }
             itemDTO.setProductImage(item.getProductImage());
             itemDTO.setQuantity(item.getQuantity());
             itemDTO.setPrice(item.getPrice());

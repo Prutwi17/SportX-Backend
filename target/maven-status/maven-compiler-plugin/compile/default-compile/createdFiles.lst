@@ -69,6 +69,7 @@ com\sportx\backend\exception\GlobalExceptionHandler$ErrorResponse.class
 com\sportx\backend\repository\PaymentRepository.class
 com\sportx\backend\service\OrderService.class
 com\sportx\backend\dto\ForgotPasswordRequest.class
+com\sportx\backend\config\DataSeeder$1ItemDef.class
 com\sportx\backend\entity\ProductImage$ProductImageBuilder.class
 com\sportx\backend\entity\Order$OrderBuilder.class
 com\sportx\backend\exception\BadRequestException.class

@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 public class OrderDTO {
     private Long id;
+    private Long userId;
     private String orderNumber;
     private BigDecimal subtotal;
     private BigDecimal shippingCost;
@@ -17,6 +18,8 @@ public class OrderDTO {
     private BigDecimal total;
     private String status;
     private String paymentMethod;
+    private String paymentStatus;
+    private String transactionId;
     private String couponCode;
     private String notes;
     private LocalDateTime createdAt;

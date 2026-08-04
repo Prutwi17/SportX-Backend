@@ -3,6 +3,7 @@ package com.sportx.backend.controller;
 import com.sportx.backend.constant.ApiConstants;
 import com.sportx.backend.dto.PaymentDTO;
 import com.sportx.backend.dto.PaymentRequest;
+import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,23 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final SecurityUtil securityUtil;
 
     @PostMapping
-    public ResponseEntity<PaymentDTO> processPayment(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<PaymentDTO> processPayment(@RequestBody PaymentRequest request) {
         return ResponseEntity.ok(paymentService.processPayment(request));
+    }
+
+    @PostMapping("/create-order")
+    public ResponseEntity<PaymentDTO> createRazorpayOrder(@RequestBody PaymentRequest request) {
+        Long userId = securityUtil.getCurrentUserId();
+        return ResponseEntity.ok(paymentService.createRazorpayOrder(userId, request));
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<PaymentDTO> verifyPayment(@RequestBody PaymentRequest request) {
+        Long userId = securityUtil.getCurrentUserId();
+        return ResponseEntity.ok(paymentService.verifyPayment(userId, request));
     }
 
     @GetMapping("/order/{orderId}")

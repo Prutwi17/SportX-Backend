@@ -96,24 +96,19 @@ public class ProductServiceImpl implements ProductService {
         product.setBrand(brand);
         product = productRepository.save(product);
 
-        if (request.getImageUrls() != null) {
-            if (product.getImages() != null && !product.getImages().isEmpty()) {
-                productImageRepository.deleteAll(new ArrayList<>(product.getImages()));
-                product.getImages().clear();
-            }
-            List<ProductImage> images = new ArrayList<>();
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            product.getImages().clear();
             for (int i = 0; i < request.getImageUrls().size(); i++) {
                 ProductImage image = ProductImage.builder()
                         .product(product)
                         .imageUrl(request.getImageUrls().get(i))
                         .isPrimary(i == 0)
                         .build();
-                images.add(image);
+                product.getImages().add(image);
             }
-            List<ProductImage> savedImages = productImageRepository.saveAll(images);
-            product.setImages(savedImages);
         }
 
+        product = productRepository.save(product);
         return mapToDTO(product);
     }
 
