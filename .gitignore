@@ -1,0 +1,31 @@
+# Local environment secrets — DO NOT COMMIT
+application-local.properties
+application-local.yml
+application-local.yaml
+
+# Maven / Java build output
+target/
+build/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
+logs/
+
+# Uploads / runtime data
+uploads/
+
+# Environment files
+.env
+.env.*
+
+# IDE / editor
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
