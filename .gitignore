@@ -2,6 +2,11 @@
 application-local.properties
 application-local.yml
 application-local.yaml
+application-*.properties
+application-*.yml
+application-*.yaml
+**/application-local.properties
+**/application-local.yml
 
 # Maven / Java build output
 target/
