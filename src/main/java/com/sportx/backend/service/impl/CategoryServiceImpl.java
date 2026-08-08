@@ -6,9 +6,11 @@ import com.sportx.backend.entity.Category;
 import com.sportx.backend.exception.DuplicateResourceException;
 import com.sportx.backend.exception.ResourceNotFoundException;
 import com.sportx.backend.repository.CategoryRepository;
+import com.sportx.backend.repository.ProductRepository;
 import com.sportx.backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public List<CategoryDTO> getAllCategories() {
@@ -66,10 +69,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Category not found");
         }
+        productRepository.detachCategory(id);
         categoryRepository.deleteById(id);
     }
 

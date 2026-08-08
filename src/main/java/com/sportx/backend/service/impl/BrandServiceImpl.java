@@ -6,9 +6,11 @@ import com.sportx.backend.entity.Brand;
 import com.sportx.backend.exception.DuplicateResourceException;
 import com.sportx.backend.exception.ResourceNotFoundException;
 import com.sportx.backend.repository.BrandRepository;
+import com.sportx.backend.repository.ProductRepository;
 import com.sportx.backend.service.BrandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import java.util.List;
 public class BrandServiceImpl implements BrandService {
 
     private final BrandRepository brandRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public List<BrandDTO> getAllBrands() {
@@ -66,10 +69,12 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Transactional
     public void deleteBrand(Long id) {
         if (!brandRepository.existsById(id)) {
             throw new ResourceNotFoundException("Brand not found");
         }
+        productRepository.detachBrand(id);
         brandRepository.deleteById(id);
     }
 

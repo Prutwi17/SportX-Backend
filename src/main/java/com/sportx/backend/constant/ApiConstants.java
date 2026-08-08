@@ -22,6 +22,7 @@ public final class ApiConstants {
     public static final String NOTIFICATIONS = BASE_URL + "/notifications";
     public static final String DASHBOARD = BASE_URL + "/dashboard";
     public static final String REPORTS = BASE_URL + "/reports";
+    public static final String ADMIN = BASE_URL + "/admin";
 
     public static final String PAGE_DEFAULT = "0";
     public static final String SIZE_DEFAULT = "10";

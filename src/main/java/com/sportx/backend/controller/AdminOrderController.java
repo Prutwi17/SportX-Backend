@@ -24,4 +24,10 @@ public class AdminOrderController {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(orderService.getAllOrders(pageable));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
 }

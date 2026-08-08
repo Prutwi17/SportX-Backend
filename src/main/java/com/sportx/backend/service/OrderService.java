@@ -13,4 +13,5 @@ public interface OrderService {
     PagedResponse<OrderDTO> getAllOrders(Pageable pageable);
     OrderDTO updateOrderStatus(Long orderId, String status);
     void cancelOrder(Long orderId);
+    void deleteOrder(Long orderId);
 }

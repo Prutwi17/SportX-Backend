@@ -22,4 +22,5 @@ public class ProductDTO {
     private int ratingCount;
     private List<String> imageUrls;
     private String primaryImage;
+    private java.time.LocalDateTime createdAt;
 }

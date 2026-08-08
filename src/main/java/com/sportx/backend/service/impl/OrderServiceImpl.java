@@ -202,6 +202,14 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
+    @Override
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        orderRepository.delete(order);
+    }
+
     private PagedResponse<OrderDTO> mapToPagedResponse(Page<Order> page) {
         List<OrderDTO> orders = page.getContent().stream()
                 .map(this::mapToDTO)

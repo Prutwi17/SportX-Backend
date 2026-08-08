@@ -2,17 +2,18 @@ package com.sportx.backend.service.impl;
 
 import com.sportx.backend.dto.DashboardDTO;
 import com.sportx.backend.dto.OrderDTO;
+import com.sportx.backend.dto.ReportsDTO;
 import com.sportx.backend.enums.OrderStatus;
 import com.sportx.backend.repository.OrderRepository;
 import com.sportx.backend.repository.ProductRepository;
 import com.sportx.backend.repository.UserRepository;
+import com.sportx.backend.service.AnalyticsService;
 import com.sportx.backend.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
+    private final AnalyticsService analyticsService;
 
     @Override
     public DashboardDTO getDashboardStats() {
@@ -51,6 +53,8 @@ public class DashboardServiceImpl implements DashboardService {
                     return dto;
                 }).toList();
 
+        ReportsDTO reports = analyticsService.getReports();
+
         return DashboardDTO.builder()
                 .totalUsers(totalUsers)
                 .totalProducts(totalProducts)
@@ -59,6 +63,18 @@ public class DashboardServiceImpl implements DashboardService {
                 .pendingOrders(pendingOrders)
                 .lowStockProducts(lowStockProducts)
                 .recentOrders(recentOrders)
+                .todayRevenue(reports.getTodayRevenue())
+                .monthlyRevenue(reports.getMonthlyRevenue())
+                .yearlyRevenue(reports.getYearlyRevenue())
+                .completedOrders(reports.getCompletedOrders())
+                .cancelledOrders(reports.getCancelledOrders())
+                .totalCustomers(reports.getTotalCustomers())
+                .outOfStockProducts(reports.getOutOfStockProducts())
+                .averageOrderValue(reports.getAverageOrderValue())
+                .topSellingProducts(reports.getTopProducts())
+                .categoryDistribution(reports.getCategoryDistribution())
+                .orderTrend(reports.getOrderByMonth())
+                .revenueTrend(reports.getRevenueByMonth())
                 .build();
     }
 }

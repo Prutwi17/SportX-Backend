@@ -24,6 +24,10 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final ProductImageRepository productImageRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final WishlistItemRepository wishlistItemRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public PagedResponse<ProductDTO> getAllProducts(Pageable pageable) {
@@ -113,11 +117,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        product.setActive(false);
-        productRepository.save(product);
+
+        orderItemRepository.detachProduct(id);
+        wishlistItemRepository.deleteByProductId(id);
+        cartItemRepository.deleteByProductId(id);
+        reviewRepository.deleteByProductId(id);
+
+        productRepository.delete(product);
     }
 
     @Override
@@ -147,6 +157,16 @@ public class ProductServiceImpl implements ProductService {
         return mapToPagedResponse(page);
     }
 
+    @Override
+    public PagedResponse<ProductDTO> getAdminProducts(String keyword, Long categoryId, Long brandId,
+                                                       Boolean active, String stockStatus, Pageable pageable) {
+        String stock = stockStatus == null || stockStatus.isBlank() ? "ALL" : stockStatus.toUpperCase();
+        String kw = keyword == null || keyword.isBlank() ? null : keyword.trim().toLowerCase();
+        Page<Product> page = productRepository.adminFilterProducts(
+                kw, categoryId, brandId, active, stock, 10, pageable);
+        return mapToPagedResponse(page);
+    }
+
     private PagedResponse<ProductDTO> mapToPagedResponse(Page<Product> page) {
         List<ProductDTO> products = page.getContent().stream()
                 .map(this::mapToDTO)
@@ -163,13 +183,14 @@ public class ProductServiceImpl implements ProductService {
         dto.setPrice(product.getPrice());
         dto.setDiscountedPrice(product.getDiscountedPrice());
         dto.setStockQuantity(product.getStockQuantity());
-        dto.setCategoryId(product.getCategory().getId());
-        dto.setCategoryName(product.getCategory().getName());
-        dto.setBrandId(product.getBrand().getId());
-        dto.setBrandName(product.getBrand().getName());
+        dto.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
+        dto.setCategoryName(product.getCategory() != null ? product.getCategory().getName() : "Uncategorized");
+        dto.setBrandId(product.getBrand() != null ? product.getBrand().getId() : null);
+        dto.setBrandName(product.getBrand() != null ? product.getBrand().getName() : "Unbranded");
         dto.setActive(product.isActive());
         dto.setAverageRating(product.getAverageRating());
         dto.setRatingCount(product.getRatingCount());
+        dto.setCreatedAt(product.getCreatedAt());
 
         List<String> imageUrls = product.getImages().stream()
                 .map(ProductImage::getImageUrl)

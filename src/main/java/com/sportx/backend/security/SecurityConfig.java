@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(ApiConstants.DASHBOARD + "/**").hasRole("ADMIN")
                 .requestMatchers(ApiConstants.REPORTS + "/**").hasRole("ADMIN")
                 .requestMatchers(ApiConstants.COUPONS + "/**").hasRole("ADMIN")
+                .requestMatchers(ApiConstants.ADMIN + "/**").hasRole("ADMIN")
                 .requestMatchers(ApiConstants.ORDERS + "/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, ApiConstants.ORDERS + "/*/status").hasRole("ADMIN")
 

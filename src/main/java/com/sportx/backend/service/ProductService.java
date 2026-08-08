@@ -18,4 +18,6 @@ public interface ProductService {
                                               Double minRating, Pageable pageable);
     PagedResponse<ProductDTO> getProductsByCategory(Long categoryId, Pageable pageable);
     PagedResponse<ProductDTO> getProductsByBrand(Long brandId, Pageable pageable);
+    PagedResponse<ProductDTO> getAdminProducts(String keyword, Long categoryId, Long brandId,
+                                               Boolean active, String stockStatus, Pageable pageable);
 }

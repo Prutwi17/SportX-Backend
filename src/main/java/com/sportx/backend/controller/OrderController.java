@@ -66,6 +66,14 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getStatus()));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        OrderDTO order = orderService.getOrderById(id);
+        verifyOrderAccess(order.getUserId());
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private void verifyOrderAccess(Long orderUserId) {
         User currentUser = securityUtil.getCurrentUser();
         if (!currentUser.getRole().name().equals("ROLE_ADMIN")

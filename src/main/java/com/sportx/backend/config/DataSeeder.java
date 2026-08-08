@@ -120,6 +120,15 @@ public class DataSeeder implements CommandLineRunner {
         String imgShoes = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600";
         String imgGym = "https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=600";
 
+        // USER SPECIFIED EXACT PRODUCTS & IMAGE URLS
+        items.add(new ItemDef("Mercurial Vapor 16", "Lightweight Flyknit football boot for explosive speed", "Football Boots", "Nike", "14995", "11995", 40, "https://cdn.salla.sa/RvPxw/b91ae16e-76c4-4ec5-a2d1-7daf50913448-1000x1000-g1GWsSZyDDBQ4ZebEIay4fNwgTt9mYdergFUwsmX.png"));
+        items.add(new ItemDef("Predator Elite", "Strikeskin rubber fins for unmatched power and precision shooting", "Football Boots", "Adidas", "15499", "12999", 30, "https://productimages.footy.com/67cf539c04512660d6db9bb6/3/1080.webp"));
+        items.add(new ItemDef("Puma Ultra Ultimate FG", "ULTRAWEAVE ultra-light fabric boot for extreme velocity", "Football Boots", "Puma", "16999", "13999", 35, "https://www.lovellsports.com/cdn/shop/files/e85785eb-1dd5-4472-8757-615f82fe2152.jpg?v=1773139988&width=1800"));
+        items.add(new ItemDef("Home Jersey UCL", "Official Real Madrid 2024/25 Champions League match home kit", "Football Jerseys", "Adidas", "4999", "4499", 55, "https://shop.realmadrid.com/cdn/shop/files/RMCFMZ0941_01-ucl.jpg?v=1779891682&width=1920"));
+        items.add(new ItemDef("Real Madrid Long Sleeve", "Official Real Madrid 2024/25 long sleeve match jersey", "Football Jerseys", "Adidas", "5499", "4999", 45, "https://us.shop.realmadrid.com/cdn/shop/files/RMCFMZ09181__20_1.webp?v=1767816278&width=1000"));
+        items.add(new ItemDef("India T20 Official Jersey", "Official Indian Cricket Team match jersey", "Football Jerseys", "Nike", "3999", "3499", 60, "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSZjXWRNqyUpjL3fSicaHNOpVwnvQ34EgE0gB93zAhZuAqdr0Op-lXz4jK&s=10"));
+        items.add(new ItemDef("Cricket Leather Bat", "Handcrafted Grade 1 English Willow cricket leather bat", "Cricket Bats", "SG", "18250", "15999", 20, "https://5.imimg.com/data5/ZM/MY/RO/SELLER-80209559/cricket-leather-bat.jpg"));
+
         // 1. FOOTBALL BOOTS (10 items)
         items.add(new ItemDef("Nike Mercurial Superfly 9 Elite FG", "Lightweight Flyknit football boot for explosive speed", "Football Boots", "Nike", "21995", "19995", 40, imgBoot));
         items.add(new ItemDef("Nike Phantom GX II Elite FG", "Precision grip football boot with Gripknit technology", "Football Boots", "Nike", "20995", "18495", 35, imgBoot));

@@ -4,6 +4,7 @@ import com.sportx.backend.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,4 +47,33 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                  Pageable pageable);
 
     List<Product> findByStockQuantityLessThanAndActiveTrue(int threshold);
+    long countByStockQuantityAndActiveTrue(int stockQuantity);
+
+    @Query("SELECT c.name, COUNT(p) FROM Product p JOIN p.category c GROUP BY c.name ORDER BY COUNT(p) DESC")
+    List<Object[]> countProductsByCategory();
+
+    @Query("SELECT p FROM Product p WHERE " +
+           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
+           "(:brandId IS NULL OR p.brand.id = :brandId) AND " +
+           "(:active IS NULL OR p.active = :active) AND " +
+           "(:stockStatus = 'ALL' OR " +
+           "  (:stockStatus = 'IN_STOCK' AND p.stockQuantity >= :lowThreshold) OR " +
+           "  (:stockStatus = 'LOW_STOCK' AND p.stockQuantity > 0 AND p.stockQuantity < :lowThreshold) OR " +
+           "  (:stockStatus = 'OUT_OF_STOCK' AND p.stockQuantity = 0))")
+    Page<Product> adminFilterProducts(@Param("keyword") String keyword,
+                                      @Param("categoryId") Long categoryId,
+                                      @Param("brandId") Long brandId,
+                                      @Param("active") Boolean active,
+                                      @Param("stockStatus") String stockStatus,
+                                      @Param("lowThreshold") int lowThreshold,
+                                      Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.category = null WHERE p.category.id = :categoryId")
+    void detachCategory(@Param("categoryId") Long categoryId);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.brand = null WHERE p.brand.id = :brandId")
+    void detachBrand(@Param("brandId") Long brandId);
 }
