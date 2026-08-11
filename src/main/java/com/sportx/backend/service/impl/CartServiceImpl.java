@@ -77,6 +77,10 @@ public class CartServiceImpl implements CartService {
             throw new BadRequestException("Cart item does not belong to user");
         }
 
+        if (quantity < 1) {
+            throw new BadRequestException("Quantity must be at least 1");
+        }
+
         if (quantity > item.getProduct().getStockQuantity()) {
             throw new BadRequestException("Insufficient stock");
         }

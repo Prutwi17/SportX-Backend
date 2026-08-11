@@ -81,8 +81,17 @@ public class CouponServiceImpl implements CouponService {
             throw new BadRequestException("Coupon is inactive");
         }
 
+        if (coupon.getDiscountPercent() == null
+                || coupon.getDiscountPercent().compareTo(BigDecimal.ZERO) <= 0
+                || coupon.getDiscountPercent().compareTo(new BigDecimal("100")) > 0) {
+            throw new BadRequestException("Invalid coupon discount");
+        }
+
         LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(coupon.getValidFrom()) || now.isAfter(coupon.getValidUntil())) {
+        if (coupon.getValidFrom() != null && now.isBefore(coupon.getValidFrom())) {
+            throw new BadRequestException("Coupon is not active yet");
+        }
+        if (coupon.getValidUntil() != null && now.isAfter(coupon.getValidUntil())) {
             throw new BadRequestException("Coupon has expired");
         }
 

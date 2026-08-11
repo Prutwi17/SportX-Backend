@@ -6,6 +6,7 @@ import com.sportx.backend.dto.CartItemRequest;
 import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.CartService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class CartController {
 
     @PutMapping("/{itemId}")
     public ResponseEntity<CartDTO> updateItemQuantity(@PathVariable Long itemId,
-                                                       @RequestParam int quantity) {
+                                                       @RequestParam @Min(value = 1, message = "Quantity must be at least 1") int quantity) {
         return ResponseEntity.ok(cartService.updateItemQuantity(securityUtil.getCurrentUserId(), itemId, quantity));
     }
 

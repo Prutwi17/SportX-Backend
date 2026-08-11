@@ -21,11 +21,18 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepo;
     private final CouponRepository couponRepo;
     private final PasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepo;
+    private final OrderItemRepository orderItemRepo;
+    private final CartItemRepository cartItemRepo;
+    private final WishlistItemRepository wishlistItemRepo;
+    private final ReviewRepository reviewRepo;
 
     public DataSeeder(CategoryRepository categoryRepo, BrandRepository brandRepo,
                       ProductRepository productRepo, ProductImageRepository productImageRepo,
                       UserRepository userRepo, CouponRepository couponRepo,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder, OrderRepository orderRepo,
+                      OrderItemRepository orderItemRepo, CartItemRepository cartItemRepo,
+                      WishlistItemRepository wishlistItemRepo, ReviewRepository reviewRepo) {
         this.categoryRepo = categoryRepo;
         this.brandRepo = brandRepo;
         this.productRepo = productRepo;
@@ -33,6 +40,11 @@ public class DataSeeder implements CommandLineRunner {
         this.userRepo = userRepo;
         this.couponRepo = couponRepo;
         this.passwordEncoder = passwordEncoder;
+        this.orderRepo = orderRepo;
+        this.orderItemRepo = orderItemRepo;
+        this.cartItemRepo = cartItemRepo;
+        this.wishlistItemRepo = wishlistItemRepo;
+        this.reviewRepo = reviewRepo;
     }
 
     @Override
@@ -50,11 +62,6 @@ public class DataSeeder implements CommandLineRunner {
                 .enabled(true)
                 .build()
             );
-        } else {
-            adminUser.setPassword(passwordEncoder.encode("admin"));
-            adminUser.setRole(UserRole.ROLE_ADMIN);
-            adminUser.setEnabled(true);
-            userRepo.save(adminUser);
         }
 
         // Coupons
@@ -102,167 +109,67 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
+        // Seed the 8 featured products ONLY when the products table is empty.
+        // (Never wipe existing products/orders/carts/wishlists/reviews on startup —
+        //  that would destroy admin-created products and customer order history.)
+        if (productRepo.count() > 0) {
+            return;
+        }
+
         List<ItemDef> items = new ArrayList<>();
 
-        // High quality Unsplash sports image URLs
-        String imgBoot = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600";
-        String imgJersey = "https://images.unsplash.com/photo-1580089054957-3822a9a07ce0?w=600";
-        String imgFootball = "https://images.unsplash.com/photo-1614632537197-38a17061c2bd?w=600";
-        String imgBat = "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600";
-        String imgBall = "https://images.unsplash.com/photo-1561715276-a2d2e2848d4b?w=600";
-        String imgGloves = "https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=600";
-        String imgPads = "https://images.unsplash.com/photo-1631726454161-d5f9b334baa6?w=600";
-        String imgHelmet = "https://images.unsplash.com/photo-1591022020517-1f90e8d2465d?w=600";
-        String imgTennisRacket = "https://images.unsplash.com/photo-1617083934555-ac7d4e0d0b2d?w=600";
-        String imgTennisBall = "https://images.unsplash.com/photo-1622279457486-28e24c392b03?w=600";
-        String imgBadmintonRacket = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600";
-        String imgShuttle = "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=600";
-        String imgShoes = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600";
-        String imgGym = "https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?w=600";
+        // USER SPECIFIED EXACT 8 FEATURED PRODUCTS ONLY
+        items.add(new ItemDef(
+            "Nike Vapor 16 Pro Mercurial Dream Speed",
+            "Explosive speed Flyknit football boots for firm ground grass pitches",
+            "Football Boots", "Nike", "18995", "15995", 35,
+            "/uploads/feature_product/nike_vapor_16_dream_speed.jpg"
+        ));
+        items.add(new ItemDef(
+            "Nike Mercurial Vapor 16 Elite LV8",
+            "Top-tier Elite LV8 edition FlyTouch football boots with metallic finish",
+            "Football Boots", "Nike", "21995", "18495", 30,
+            "/uploads/feature_product/nike_vapor_16_elite_lv8.jpg"
+        ));
+        items.add(new ItemDef(
+            "Puma Electrify Nitro 4 Running Shoes",
+            "Lightweight dual-cushion NITROFOAM running shoes in Off-White edition",
+            "Running Shoes", "Puma", "11999", "9999", 40,
+            "/uploads/feature_product/puma_electrify_nitro_4.png"
+        ));
+        items.add(new ItemDef(
+            "Real Madrid Home Jersey Fan Edition",
+            "Official Real Madrid 2024/25 fan edition home match kit with embroidered crest",
+            "Football Jerseys", "Adidas", "4999", "4299", 90,
+            "/uploads/feature_product/real_madrid_home_jersey.png"
+        ));
+        items.add(new ItemDef(
+            "Puma x RCB Official Match Jersey 2026",
+            "Official Royal Challengers Bengaluru 2026 match jersey with dryCELL tech",
+            "Football Jerseys", "Puma", "3999", "3499", 100,
+            "/uploads/feature_product/puma_rcb_jersey_2026.png"
+        ));
+        items.add(new ItemDef(
+            "PUMA LaLiga 1 Accelerate Match Ball",
+            "Official 12-panel FIFA Quality Pro match ball engineered for LaLiga matches",
+            "Footballs", "Puma", "10999", "8999", 50,
+            "/uploads/feature_product/puma_football_laliga_accelerate.png"
+        ));
+        items.add(new ItemDef(
+            "Kookaburra Kahuna Pro English Willow Bat",
+            "Handcrafted Grade 1 English Willow cricket bat with massive profile and light pickup",
+            "Cricket Bats", "Kookaburra", "38999", "34999", 25,
+            "/uploads/feature_product/cricket_bat_kookaburra.png"
+        ));
+        items.add(new ItemDef(
+            "Red Leather Match Cricket Ball",
+            "Premium alum-tanned 4-piece red leather match ball with hand-stitched seam",
+            "Cricket Balls", "SG", "2499", "1999", 80,
+            "/uploads/feature_product/cricket_leather_ball.jpg"
+        ));
 
-        // USER SPECIFIED EXACT PRODUCTS & IMAGE URLS
-        items.add(new ItemDef("Mercurial Vapor 16", "Lightweight Flyknit football boot for explosive speed", "Football Boots", "Nike", "14995", "11995", 40, "https://cdn.salla.sa/RvPxw/b91ae16e-76c4-4ec5-a2d1-7daf50913448-1000x1000-g1GWsSZyDDBQ4ZebEIay4fNwgTt9mYdergFUwsmX.png"));
-        items.add(new ItemDef("Predator Elite", "Strikeskin rubber fins for unmatched power and precision shooting", "Football Boots", "Adidas", "15499", "12999", 30, "https://productimages.footy.com/67cf539c04512660d6db9bb6/3/1080.webp"));
-        items.add(new ItemDef("Puma Ultra Ultimate FG", "ULTRAWEAVE ultra-light fabric boot for extreme velocity", "Football Boots", "Puma", "16999", "13999", 35, "https://www.lovellsports.com/cdn/shop/files/e85785eb-1dd5-4472-8757-615f82fe2152.jpg?v=1773139988&width=1800"));
-        items.add(new ItemDef("Home Jersey UCL", "Official Real Madrid 2024/25 Champions League match home kit", "Football Jerseys", "Adidas", "4999", "4499", 55, "https://shop.realmadrid.com/cdn/shop/files/RMCFMZ0941_01-ucl.jpg?v=1779891682&width=1920"));
-        items.add(new ItemDef("Real Madrid Long Sleeve", "Official Real Madrid 2024/25 long sleeve match jersey", "Football Jerseys", "Adidas", "5499", "4999", 45, "https://us.shop.realmadrid.com/cdn/shop/files/RMCFMZ09181__20_1.webp?v=1767816278&width=1000"));
-        items.add(new ItemDef("India T20 Official Jersey", "Official Indian Cricket Team match jersey", "Football Jerseys", "Nike", "3999", "3499", 60, "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSZjXWRNqyUpjL3fSicaHNOpVwnvQ34EgE0gB93zAhZuAqdr0Op-lXz4jK&s=10"));
-        items.add(new ItemDef("Cricket Leather Bat", "Handcrafted Grade 1 English Willow cricket leather bat", "Cricket Bats", "SG", "18250", "15999", 20, "https://5.imimg.com/data5/ZM/MY/RO/SELLER-80209559/cricket-leather-bat.jpg"));
-
-        // 1. FOOTBALL BOOTS (10 items)
-        items.add(new ItemDef("Nike Mercurial Superfly 9 Elite FG", "Lightweight Flyknit football boot for explosive speed", "Football Boots", "Nike", "21995", "19995", 40, imgBoot));
-        items.add(new ItemDef("Nike Phantom GX II Elite FG", "Precision grip football boot with Gripknit technology", "Football Boots", "Nike", "20995", "18495", 35, imgBoot));
-        items.add(new ItemDef("Nike Tiempo Legend 10 Elite", "FlyTouch Plus engineered leather touch boot", "Football Boots", "Nike", "19495", null, 45, imgBoot));
-        items.add(new ItemDef("Adidas Predator Elite FT FG", "Fold-over tongue boots with Strikeskin rubber fins", "Football Boots", "Adidas", "22999", "20499", 30, imgBoot));
-        items.add(new ItemDef("Adidas Copa Pure 2.1 FG", "Fusionskin leather boots for silky touch and comfort", "Football Boots", "Adidas", "17999", null, 50, imgBoot));
-        items.add(new ItemDef("Adidas X Crazyfast.1 FG", "Aerocage speedframe boot designed for pure acceleration", "Football Boots", "Adidas", "19999", "17999", 40, imgBoot));
-        items.add(new ItemDef("Puma Future 7 Ultimate FG/AG", "FUZIONFIT360 dual mesh upper with PWRTAPE stability", "Football Boots", "Puma", "18999", "16999", 35, imgBoot));
-        items.add(new ItemDef("Puma Ultra Ultimate FG/AG", "ULTRAWEAVE ultra-light fabric boot for extreme velocity", "Football Boots", "Puma", "17999", null, 42, imgBoot));
-        items.add(new ItemDef("Puma King Ultimate FG", "K-BETTER non-animal upper material match boot", "Football Boots", "Puma", "15999", "13999", 30, imgBoot));
-        items.add(new ItemDef("Nivia Carbonite Real Football Studs", "Durable TPU studs for firm Indian ground grass pitches", "Football Boots", "Nivia", "1499", "1299", 100, imgBoot));
-
-        // 2. FOOTBALL JERSEYS (14 items)
-        items.add(new ItemDef("Real Madrid Home Jersey 2024/25", "Official Adidas Real Madrid home kit with gold detailing", "Football Jerseys", "Adidas", "4999", "4499", 60, imgJersey));
-        items.add(new ItemDef("Real Madrid Away Jersey 2024/25", "Official Adidas Real Madrid orange away kit", "Football Jerseys", "Adidas", "4999", null, 50, imgJersey));
-        items.add(new ItemDef("FC Barcelona Home Jersey 2024/25", "Official Nike Blaugrana home kit with Dri-FIT ADV", "Football Jerseys", "Nike", "4999", "4299", 55, imgJersey));
-        items.add(new ItemDef("Manchester United Home Jersey", "Official Adidas Red Devils home match jersey", "Football Jerseys", "Adidas", "4999", null, 48, imgJersey));
-        items.add(new ItemDef("Liverpool FC Home Jersey", "Official Nike Reds home kit with ribbed collar", "Football Jerseys", "Nike", "4999", "4399", 52, imgJersey));
-        items.add(new ItemDef("Arsenal FC Home Jersey", "Official Adidas Gunners home kit with gold cannon emblem", "Football Jerseys", "Adidas", "4999", null, 45, imgJersey));
-        items.add(new ItemDef("Chelsea FC Home Jersey", "Official Nike Blues home stadium jersey", "Football Jerseys", "Nike", "4999", null, 40, imgJersey));
-        items.add(new ItemDef("Manchester City Home Jersey", "Official Puma Sky Blue home kit with 0161 city code", "Football Jerseys", "Puma", "4999", "4499", 58, imgJersey));
-        items.add(new ItemDef("PSG Home Jersey 2024/25", "Official Nike Paris Saint-Germain home kit", "Football Jerseys", "Nike", "4999", null, 38, imgJersey));
-        items.add(new ItemDef("Juventus Home Jersey 2024/25", "Official Adidas Bianconeri striped home kit", "Football Jerseys", "Adidas", "4999", null, 35, imgJersey));
-        items.add(new ItemDef("India Cricket Official Match Jersey", "Official Adidas Team India T20 World Cup Champions jersey", "Football Jerseys", "Adidas", "3499", "2999", 120, imgJersey));
-        items.add(new ItemDef("RCB Official IPL Jersey", "Royal Challengers Bengaluru official fan match jersey", "Football Jerseys", "Puma", "1999", "1699", 150, imgJersey));
-        items.add(new ItemDef("SRH Official IPL Jersey", "Sunrisers Hyderabad orange army official IPL jersey", "Football Jerseys", "Puma", "1799", null, 80, imgJersey));
-        items.add(new ItemDef("GT Gujarat Titans Official Jersey", "Gujarat Titans blue & teal official IPL match jersey", "Football Jerseys", "Puma", "1799", null, 75, imgJersey));
-
-        // 3. FOOTBALLS (6 items)
-        items.add(new ItemDef("Nike Flight FIFA Quality Pro Football", "3D printed Aerowsculpt grooves for true flight path", "Footballs", "Nike", "11995", "9995", 30, imgFootball));
-        items.add(new ItemDef("Adidas Euro 2024 Fussballliebe Match Ball", "Official UEFA Euro match ball with Connected Ball Tech", "Footballs", "Adidas", "12999", null, 25, imgFootball));
-        items.add(new ItemDef("Puma Orbita La Liga Official Ball", "12-panel FIFA Quality Pro match ball", "Footballs", "Puma", "10999", "8999", 28, imgFootball));
-        items.add(new ItemDef("Nivia Shining Star Football", "32-panel hand stitched TPU outer football", "Footballs", "Nivia", "1299", "999", 150, imgFootball));
-        items.add(new ItemDef("Nivia Ashtang FIFA Approved Football", "Thermally bonded seamless official match ball", "Footballs", "Nivia", "1899", null, 80, imgFootball));
-        items.add(new ItemDef("Cosco Rio Football", "Size 5 synthetic rubber molded training ball", "Footballs", "Cosco", "899", "699", 200, imgFootball));
-
-        // 4. CRICKET BATS (12 items)
-        items.add(new ItemDef("SG Players Edition English Willow Bat", "Hand-crafted Grade 1+ English Willow used by international pros", "Cricket Bats", "SG", "48000", "42500", 15, imgBat));
-        items.add(new ItemDef("SG Sunny Tonny Classic English Willow Bat", "Traditional round handle bat with thick edges and deep sweet spot", "Cricket Bats", "SG", "24999", "21999", 25, imgBat));
-        items.add(new ItemDef("SS Ton Reserve Edition English Willow Bat", "Air dried Grade 1 English Willow with massive profile", "Cricket Bats", "SS", "38000", "34000", 18, imgBat));
-        items.add(new ItemDef("SS Super Select Player Grade Bat", "Custom shaped lightweight English Willow with superb balance", "Cricket Bats", "SS", "45000", null, 12, imgBat));
-        items.add(new ItemDef("GM Diamond 909 English Willow Bat", "Ben Stokes signature profile with hex grip and L555 blade", "Cricket Bats", "GM", "32000", "28500", 20, imgBat));
-        items.add(new ItemDef("GM Icon Original English Willow Bat", "Mid-to-high sweet spot bat engineered for dynamic strokeplay", "Cricket Bats", "GM", "29000", null, 22, imgBat));
-        items.add(new ItemDef("MRF Genius Grand Edition Bat", "Virat Kohli signature series Grade 1 English Willow bat", "Cricket Bats", "MRF", "42000", "37999", 16, imgBat));
-        items.add(new ItemDef("MRF Legend VK 18 English Willow Bat", "Optimum spine height with ultra-thick toe and light pickup", "Cricket Bats", "MRF", "35000", null, 20, imgBat));
-        items.add(new ItemDef("Kookaburra Kahuna Pro English Willow Bat", "Iconic green Kahuna profile used by Ricky Ponting & Jos Buttler", "Cricket Bats", "Kookaburra", "39000", "35000", 15, imgBat));
-        items.add(new ItemDef("Kookaburra Ghost Pro English Willow Bat", "Clean white graphics with full profile and minimal scalloping", "Cricket Bats", "Kookaburra", "31000", null, 18, imgBat));
-        items.add(new ItemDef("SG Sierra Kashmir Willow Bat", "Premium Kashmir Willow bat ideal for club and academy players", "Cricket Bats", "SG", "2999", "2499", 60, imgBat));
-        items.add(new ItemDef("SS Master Kashmir Willow Bat", "Full size Kashmir Willow bat with protective toe guard", "Cricket Bats", "SS", "2799", null, 70, imgBat));
-
-        // 5. CRICKET BALLS (6 items)
-        items.add(new ItemDef("Kookaburra Turf Pink Test Ball", "Official International Day-Night Test Match Ball", "Cricket Balls", "Kookaburra", "5499", "4899", 50, imgBall));
-        items.add(new ItemDef("Kookaburra Turf Red Match Ball", "Hand stitched 4-piece alum tanned red leather ball", "Cricket Balls", "Kookaburra", "4999", null, 60, imgBall));
-        items.add(new ItemDef("Kookaburra White One-Day Ball", "Official ODI white ball with high visibility coating", "Cricket Balls", "Kookaburra", "4799", null, 55, imgBall));
-        items.add(new ItemDef("SG Test Red Leather Ball", "BCCI official Test Match red leather cricket ball", "Cricket Balls", "SG", "2299", "1999", 120, imgBall));
-        items.add(new ItemDef("SG Tournament Leather Ball", "Alum tanned 4-piece leather ball for 50-over matches", "Cricket Balls", "SG", "1499", null, 150, imgBall));
-        items.add(new ItemDef("SG Club White Leather Ball", "High quality white leather ball for T20 tournaments", "Cricket Balls", "SG", "1299", "1099", 180, imgBall));
-
-        // 6. CRICKET GLOVES (5 items)
-        items.add(new ItemDef("SG Test Batting Gloves", "Pittards leather palm with high density foam finger rolls", "Cricket Gloves", "SG", "3499", "2999", 40, imgGloves));
-        items.add(new ItemDef("SS Ton Limited Edition Gloves", "Premium sheep leather palm with split-finger flexibility", "Cricket Gloves", "SS", "3899", null, 35, imgGloves));
-        items.add(new ItemDef("GM Diamond Pro Batting Gloves", "Calf leather palm with Poron XRD impact protection", "Cricket Gloves", "GM", "2999", null, 45, imgGloves));
-        items.add(new ItemDef("Kookaburra Kahuna Pro Gloves", "Kookaburra MAX FLO ventilation with airflow mesh", "Cricket Gloves", "Kookaburra", "3299", "2899", 38, imgGloves));
-        items.add(new ItemDef("SG Club Batting Gloves", "Durable PU gloves with cotton palm for practice sessions", "Cricket Gloves", "SG", "1499", null, 80, imgGloves));
-
-        // 7. CRICKET PADS (4 items)
-        items.add(new ItemDef("SG Test Batting Pads", "Ultra-lightweight cane construction with molded knee cap", "Cricket Pads", "SG", "5999", "5199", 30, imgPads));
-        items.add(new ItemDef("SS Ton Super Select Pads", "High density foam bolster with memory foam instep", "Cricket Pads", "SS", "6499", null, 25, imgPads));
-        items.add(new ItemDef("GM Icon Pro Batting Legguards", "Vertical cane ribs with twin-wing protection design", "Cricket Pads", "GM", "5299", null, 28, imgPads));
-        items.add(new ItemDef("Kookaburra Ghost Pro Pads", "Traditional 7 cane construction with mesh instep", "Cricket Pads", "Kookaburra", "5899", "5199", 26, imgPads));
-
-        // 8. CRICKET HELMETS (3 items)
-        items.add(new ItemDef("SG Lightweight Titanium Grille Helmet", "High impact ABS shell with titanium face grille", "Cricket Helmets", "SG", "4999", "4299", 30, imgHelmet));
-        items.add(new ItemDef("SS Matrix Steel Grille Helmet", "Adjustable rear headband with powder-coated steel grille", "Cricket Helmets", "SS", "2999", null, 40, imgHelmet));
-        items.add(new ItemDef("SG Optipro Cricket Helmet", "Traditional cloth covered shell with ear protection pads", "Cricket Helmets", "SG", "2499", "2199", 50, imgHelmet));
-
-        // 9. TENNIS RACKETS (4 items)
-        items.add(new ItemDef("Yonex EZONE 98 Tennis Racket", "ISOMETRIC head shape with Vibration Dampening Mesh (VDM)", "Tennis Rackets", "Yonex", "21990", "19490", 25, imgTennisRacket));
-        items.add(new ItemDef("Yonex VCORE 98 Tennis Racket", "Spin-oriented graphite racket used by Denis Shapovalov", "Tennis Rackets", "Yonex", "22490", null, 20, imgTennisRacket));
-        items.add(new ItemDef("Yonex Percept 100 Racket", "Control-focused frame with Servo Filter technology", "Tennis Rackets", "Yonex", "20990", "18990", 22, imgTennisRacket));
-        items.add(new ItemDef("Yonex Astrel 105 Racket", "Lightweight power racket ideal for club players", "Tennis Rackets", "Yonex", "16990", null, 30, imgTennisRacket));
-
-        // 10. TENNIS BALLS (3 items)
-        items.add(new ItemDef("Cosco Championship Tennis Balls (Pack of 3)", "ITF approved pressurized tennis balls for all court surfaces", "Tennis Balls", "Cosco", "449", null, 300, imgTennisBall));
-        items.add(new ItemDef("Cosco Tournament Tennis Balls (Pack of 6)", "High durability woven felt balls for match play", "Tennis Balls", "Cosco", "849", "749", 200, imgTennisBall));
-        items.add(new ItemDef("Yonex Tour Championship Tennis Balls (Pack of 4)", "Premium woven felt pressurized balls", "Tennis Balls", "Yonex", "699", null, 250, imgTennisBall));
-
-        // 11. BADMINTON RACKETS (5 items)
-        items.add(new ItemDef("Yonex Astrox 100ZZ Badminton Racket", "Namd graphite head-heavy racket used by Viktor Axelsen", "Badminton Rackets", "Yonex", "18990", "16990", 30, imgBadmintonRacket));
-        items.add(new ItemDef("Yonex Nanoflare 800 Pro Racket", "Head-light speed racket with Sonic Flare System", "Badminton Rackets", "Yonex", "17990", null, 25, imgBadmintonRacket));
-        items.add(new ItemDef("Yonex Arcsaber 11 Pro Racket", "Even-balance control racket used by Aaron Chia", "Badminton Rackets", "Yonex", "18490", "16490", 28, imgBadmintonRacket));
-        items.add(new ItemDef("Yonex Muscle Power 29 Racket", "Full graphite frame with Muscle Power frame architecture", "Badminton Rackets", "Yonex", "2990", "2590", 80, imgBadmintonRacket));
-        items.add(new ItemDef("Yonex GR 303 Beginner Racket", "Aluminum frame sturdy racket with full cover", "Badminton Rackets", "Yonex", "990", null, 150, imgBadmintonRacket));
-
-        // 12. SHUTTLECOCKS (3 items)
-        items.add(new ItemDef("Yonex AS-30 Feather Shuttlecocks (Pack of 12)", "Goose feather tournament grade shuttlecocks", "Shuttlecocks", "Yonex", "2490", "2190", 100, imgShuttle));
-        items.add(new ItemDef("Yonex Mavis 350 Nylon Shuttlecocks (Pack of 6)", "Precision nylon shuttlecocks with natural cork base", "Shuttlecocks", "Yonex", "1190", null, 250, imgShuttle));
-        items.add(new ItemDef("Cosco Aero 77 Feather Shuttlecocks", "Duck feather shuttlecocks for club matches", "Shuttlecocks", "Cosco", "1490", "1290", 120, imgShuttle));
-
-        // 13. RUNNING SHOES (10 items)
-        items.add(new ItemDef("Nike Alphafly 3 Road Racing Shoes", "Marathon carbon plate racing shoe with Zoom Air pods", "Running Shoes", "Nike", "22795", "20495", 25, imgShoes));
-        items.add(new ItemDef("Nike Pegasus 40 Running Shoes", "Versatile daily trainer with React foam & dual Zoom Air", "Running Shoes", "Nike", "11895", "9995", 50, imgShoes));
-        items.add(new ItemDef("Adidas Ultraboost Light Running Shoes", "Light Boost foam shoe for maximum energy return", "Running Shoes", "Adidas", "18999", "15999", 40, imgShoes));
-        items.add(new ItemDef("Adidas Adizero Adios Pro 3", "Marathon record-breaking shoe with EnergyRods 2.0", "Running Shoes", "Adidas", "21999", null, 20, imgShoes));
-        items.add(new ItemDef("ASICS GEL-Nimbus 26 Running Shoes", "PureGEL technology cushioning shoe for long distance", "Running Shoes", "ASICS", "15999", "13999", 35, imgShoes));
-        items.add(new ItemDef("ASICS GEL-Kayano 30 Stability Shoes", "4D GUIDANCE SYSTEM for ultimate stability and support", "Running Shoes", "ASICS", "16999", null, 30, imgShoes));
-        items.add(new ItemDef("New Balance Fresh Foam X 1080v13", "Plush Fresh Foam midsole running shoe", "Running Shoes", "New Balance", "14999", "12999", 32, imgShoes));
-        items.add(new ItemDef("Under Armour HOVR Phantom 3", "UA HOVR cushioning with SpeedForm 2.0 sockliner", "Running Shoes", "Under Armour", "12999", null, 28, imgShoes));
-        items.add(new ItemDef("Puma Velocity Nitro 3 Running Shoes", "NITROFOAM responsive cushioning daily trainer", "Running Shoes", "Puma", "10999", "8999", 45, imgShoes));
-        items.add(new ItemDef("Reebok Floatride Energy 5", "Floatride Energy Foam lightweight endurance shoe", "Running Shoes", "Reebok", "8999", "7499", 50, imgShoes));
-
-        // 14. GYM EQUIPMENT (15 items)
-        items.add(new ItemDef("Under Armour TriBase Reign 6 Gym Shoes", "TriBase ground control shoes for CrossFit and lifting", "Gym Equipment", "Under Armour", "11999", "10499", 30, imgGym));
-        items.add(new ItemDef("Nike Metcon 9 Training Shoes", "Hyperlift plate shoe with rubber rope wrap for lifting", "Gym Equipment", "Nike", "12795", "11295", 35, imgGym));
-        items.add(new ItemDef("Adidas Powerlift 5 Lifting Shoes", "High heel wedge weightlifting shoe with instep strap", "Gym Equipment", "Adidas", "9999", null, 25, imgGym));
-        items.add(new ItemDef("Dumbbell Set 20kg Adjustable Cast Iron", "20kg chrome plated adjustable dumbbell set with case", "Gym Equipment", "Puma", "6499", "5499", 40, imgGym));
-        items.add(new ItemDef("Commercial Olympic Barbell 20kg 7ft", "700lb capacity chrome Olympic bar with needle bearings", "Gym Equipment", "Under Armour", "12999", null, 20, imgGym));
-        items.add(new ItemDef("Bumper Weight Plates Set 50kg", "High density rubber Olympic bumper plates (2x5kg, 2x10kg, 2x15kg)", "Gym Equipment", "Reebok", "14999", "12999", 15, imgGym));
-        items.add(new ItemDef("Heavy Duty Adjustable Bench Press", "Flat, incline, decline 7-position utility workout bench", "Gym Equipment", "Under Armour", "8999", "7499", 25, imgGym));
-        items.add(new ItemDef("Speed Cable Jump Rope Pro", "Aluminum handle speed rope with dual ball bearings", "Gym Equipment", "Nike", "799", "599", 150, imgGym));
-        items.add(new ItemDef("Heavy Resistance Loop Bands Set of 5", "100% natural latex powerlifting loop bands", "Gym Equipment", "Adidas", "1299", "999", 120, imgGym));
-        items.add(new ItemDef("Kettlebell 16kg Cast Iron", "Powder coated cast iron kettlebell with color coded ring", "Gym Equipment", "Reebok", "2999", null, 40, imgGym));
-        items.add(new ItemDef("Pull Up Bar Multi-Grip Doorway", "Heavy duty doorway pull up & chin up bar", "Gym Equipment", "Puma", "1999", "1699", 80, imgGym));
-        items.add(new ItemDef("Ab Roller Wheel with Knee Mat", "Dual wheel ab trainer with stainless steel axle", "Gym Equipment", "Nike", "899", null, 100, imgGym));
-        items.add(new ItemDef("Foam Roller High Density Muscle Recovery", "Grid pattern EVA foam roller for deep tissue massage", "Gym Equipment", "Puma", "1199", "999", 90, imgGym));
-        items.add(new ItemDef("Padded Lifting Straps Pair", "Neoprene padded heavy duty cotton weightlifting straps", "Gym Equipment", "Under Armour", "499", null, 200, imgGym));
-        items.add(new ItemDef("Leather Weightlifting Belt 4 inch", "Genuine leather 4-inch wide lumbar support belt", "Gym Equipment", "Reebok", "1999", "1599", 60, imgGym));
-
-        // Insert items safely without deleting any existing records
+        // Insert EXACT 8 items
         for (ItemDef item : items) {
-            if (productRepo.findByName(item.name).isPresent()) {
-                continue;
-            }
-
             Category cat = catMap.get(item.cat);
             Brand b = brandMap.get(item.brand);
             if (cat == null || b == null) continue;
@@ -276,8 +183,8 @@ public class DataSeeder implements CommandLineRunner {
                 .brand(b)
                 .stockQuantity(item.stock)
                 .active(true)
-                .averageRating(4.5 + (Math.random() * 0.5))
-                .ratingCount(15 + (int)(Math.random() * 150))
+                .averageRating(4.8)
+                .ratingCount(120)
                 .build();
 
             p = productRepo.save(p);
