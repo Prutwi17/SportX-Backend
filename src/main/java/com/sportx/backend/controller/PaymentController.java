@@ -20,7 +20,7 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<PaymentDTO> processPayment(@RequestBody PaymentRequest request) {
-        return ResponseEntity.ok(paymentService.processPayment(request));
+        return ResponseEntity.ok(paymentService.processPayment(securityUtil.getCurrentUserId(), request));
     }
 
     @PostMapping("/create-order")
@@ -37,6 +37,6 @@ public class PaymentController {
 
     @GetMapping("/order/{orderId}")
     public ResponseEntity<PaymentDTO> getPaymentByOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId));
+        return ResponseEntity.ok(paymentService.getPaymentByOrderId(securityUtil.getCurrentUserId(), orderId));
     }
 }
