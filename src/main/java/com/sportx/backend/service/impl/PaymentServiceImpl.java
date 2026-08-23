@@ -15,6 +15,7 @@ import com.sportx.backend.repository.*;
 import com.sportx.backend.service.CouponService;
 import com.sportx.backend.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private static final BigDecimal SHIPPING_COST = new BigDecimal("49.00");
@@ -36,7 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${razorpay.key.id:rzp_test_SportXKey2026}")
     private String razorpayKeyId;
 
-    @Value("${razorpay.key.secret:SportXRazorpaySecretKey2026}")
+    @Value("${razorpay.key.secret:}")
     private String razorpayKeySecret;
 
     private final PaymentRepository paymentRepository;
@@ -50,38 +52,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public PaymentDTO processPayment(PaymentRequest request) {
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-
-        if (paymentRepository.findByOrderId(request.getOrderId()).isPresent()) {
-            Payment existing = paymentRepository.findByOrderId(request.getOrderId()).get();
-            if (PaymentStatus.PAID.equals(existing.getStatus())) {
-                throw new BadRequestException("Payment already processed for this order");
-            }
-        }
-
-        Payment payment = Payment.builder()
-                .order(order)
-                .paymentMethod(request.getPaymentMethod() != null ? PaymentMethod.valueOf(request.getPaymentMethod()) : PaymentMethod.RAZORPAY)
-                .amount(order.getTotal())
-                .status(PaymentStatus.PAID)
-                .razorpayOrderId(request.getRazorpayOrderId())
-                .razorpayPaymentId(request.getRazorpayPaymentId())
-                .transactionId("TXN-" + System.currentTimeMillis())
-                .paidAt(LocalDateTime.now())
-                .build();
-
-        payment = paymentRepository.save(payment);
-        order.setStatus(OrderStatus.CONFIRMED);
-        orderRepository.save(order);
-
-        return mapToDTO(payment);
+    public PaymentDTO processPayment(Long userId, PaymentRequest request) {
+        return verifyPayment(userId, request);
     }
 
     @Override
     @Transactional
     public PaymentDTO createRazorpayOrder(Long userId, PaymentRequest request) {
+        ensureRazorpayConfigured();
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -131,7 +110,9 @@ public class PaymentServiceImpl implements PaymentService {
             orderRequest.put("receipt", orderNumber);
             com.razorpay.Order rzpOrder = razorpay.orders.create(orderRequest);
             razorpayOrderId = rzpOrder.get("id");
+            log.info("Razorpay order successfully created on Razorpay servers: {}", razorpayOrderId);
         } catch (Exception e) {
+            log.warn("Razorpay API call failed ({}). Generating local test order ID.", e.getMessage());
             razorpayOrderId = "order_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
         }
 
@@ -151,6 +132,27 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         order = orderRepository.save(order);
+
+        for (CartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            BigDecimal price = product.getDiscountedPrice() != null
+                    ? product.getDiscountedPrice() : product.getPrice();
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .product(product)
+                    .productName(product.getName())
+                    .productImage(product.getImages().stream()
+                            .filter(ProductImage::isPrimary)
+                            .map(ProductImage::getImageUrl)
+                            .findFirst().orElse(null))
+                    .quantity(cartItem.getQuantity())
+                    .price(price)
+                    .subtotal(price.multiply(BigDecimal.valueOf(cartItem.getQuantity())))
+                    .build();
+
+            orderItemRepository.save(orderItem);
+        }
 
         Payment payment = Payment.builder()
                 .order(order)
@@ -197,47 +199,29 @@ public class PaymentServiceImpl implements PaymentService {
             return dto;
         }
 
-        if (request.getRazorpaySignature() != null && !request.getRazorpaySignature().isBlank()) {
-            String rzpOrderId = request.getRazorpayOrderId() != null ? request.getRazorpayOrderId() : (payment != null ? payment.getRazorpayOrderId() : null);
-            boolean isValid = verifySignature(rzpOrderId, request.getRazorpayPaymentId(), request.getRazorpaySignature());
-            if (!isValid) {
-                throw new BadRequestException("Invalid Razorpay payment signature");
-            }
+        if (request.getRazorpaySignature() == null || request.getRazorpaySignature().isBlank()) {
+            throw new BadRequestException("Razorpay payment signature is required");
         }
 
-        List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
-        if (!cartItems.isEmpty()) {
-            if (order.getOrderItems().isEmpty()) {
-                for (CartItem cartItem : cartItems) {
-                    Product product = cartItem.getProduct();
-                    if (cartItem.getQuantity() > product.getStockQuantity()) {
-                        throw new BadRequestException("Insufficient stock for: " + product.getName());
-                    }
+        String rzpOrderId = request.getRazorpayOrderId() != null ? request.getRazorpayOrderId() : (payment != null ? payment.getRazorpayOrderId() : null);
+        boolean isValid = verifySignature(rzpOrderId, request.getRazorpayPaymentId(), request.getRazorpaySignature());
+        if (!isValid) {
+            throw new BadRequestException("Invalid Razorpay payment signature");
+        }
 
-                    BigDecimal price = product.getDiscountedPrice() != null
-                            ? product.getDiscountedPrice() : product.getPrice();
-
-                    OrderItem orderItem = OrderItem.builder()
-                            .order(order)
-                            .product(product)
-                            .productName(product.getName())
-                            .productImage(product.getImages().stream()
-                                    .filter(ProductImage::isPrimary)
-                                    .map(ProductImage::getImageUrl)
-                                    .findFirst().orElse(null))
-                            .quantity(cartItem.getQuantity())
-                            .price(price)
-                            .subtotal(price.multiply(BigDecimal.valueOf(cartItem.getQuantity())))
-                            .build();
-
-                    orderItemRepository.save(orderItem);
-
-                    product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
+        // Deduct stock for order items
+        if (order.getOrderItems() != null) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                if (product != null && product.getStockQuantity() >= item.getQuantity()) {
+                    product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
                     productRepository.save(product);
                 }
-                cartItemRepository.deleteAll(cartItems);
             }
         }
+
+        // Clear user's cart on backend upon verified payment
+        cartItemRepository.deleteByUserId(userId);
 
         if (payment == null) {
             payment = Payment.builder()
@@ -249,7 +233,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment.setStatus(PaymentStatus.PAID);
         payment.setPaidAt(LocalDateTime.now());
-        payment.setRazorpayOrderId(request.getRazorpayOrderId());
+        payment.setRazorpayOrderId(request.getRazorpayOrderId() != null ? request.getRazorpayOrderId() : payment.getRazorpayOrderId());
         payment.setRazorpayPaymentId(request.getRazorpayPaymentId() != null
                 ? request.getRazorpayPaymentId() : "pay_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14));
         if (payment.getTransactionId() == null) {
@@ -268,9 +252,12 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentDTO getPaymentByOrderId(Long orderId) {
+    public PaymentDTO getPaymentByOrderId(Long userId, Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+        if (!payment.getOrder().getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("Unauthorized access to this payment");
+        }
         return mapToDTO(payment);
     }
 
@@ -298,8 +285,16 @@ public class PaymentServiceImpl implements PaymentService {
                 }
                 return hexString.toString().equals(signature);
             } catch (Exception ex) {
-                return true;
+                return false;
             }
+        }
+    }
+
+    private void ensureRazorpayConfigured() {
+        if (razorpayKeyId == null || razorpayKeyId.isBlank()
+                || razorpayKeySecret == null || razorpayKeySecret.isBlank()) {
+            throw new BadRequestException(
+                    "Razorpay credentials not configured. Please set razorpay.key.id and razorpay.key.secret in application.properties.");
         }
     }
 
