@@ -3,6 +3,7 @@ package com.sportx.backend.config;
 import com.sportx.backend.entity.*;
 import com.sportx.backend.enums.UserRole;
 import com.sportx.backend.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,12 @@ import java.util.*;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
+
+    @Value("${app.seed.demo-data:true}")
+    private boolean seedDemoData;
+
+    @Value("${app.seed.admin:true}")
+    private boolean seedAdmin;
 
     private final CategoryRepository categoryRepo;
     private final BrandRepository brandRepo;
@@ -50,18 +57,20 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        // Admin User Setup
-        User adminUser = userRepo.findByEmail("admin@sportx.com").orElse(null);
-        if (adminUser == null) {
-            userRepo.save(User.builder()
-                .email("admin@sportx.com")
-                .password(passwordEncoder.encode("admin"))
-                .firstName("Admin")
-                .lastName("SportX")
-                .role(UserRole.ROLE_ADMIN)
-                .enabled(true)
-                .build()
-            );
+        // Admin User Setup (Only when seedAdmin is explicitly enabled)
+        if (seedAdmin) {
+            User adminUser = userRepo.findByEmail("admin@sportx.com").orElse(null);
+            if (adminUser == null) {
+                userRepo.save(User.builder()
+                    .email("admin@sportx.com")
+                    .password(passwordEncoder.encode("admin"))
+                    .firstName("Admin")
+                    .lastName("SportX")
+                    .role(UserRole.ROLE_ADMIN)
+                    .enabled(true)
+                    .build()
+                );
+            }
         }
 
         // Coupons
@@ -112,7 +121,7 @@ public class DataSeeder implements CommandLineRunner {
         // Seed the 8 featured products ONLY when the products table is empty.
         // (Never wipe existing products/orders/carts/wishlists/reviews on startup —
         //  that would destroy admin-created products and customer order history.)
-        if (productRepo.count() > 0) {
+        if (!seedDemoData || productRepo.count() > 0) {
             return;
         }
 
