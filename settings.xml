@@ -10,4 +10,40 @@
             <mirrorOf>central</mirrorOf>
         </mirror>
     </mirrors>
+
+    <profiles>
+        <profile>
+            <id>google-mirror-profile</id>
+            <repositories>
+                <repository>
+                    <id>google-central-repo</id>
+                    <name>Google Central Mirror</name>
+                    <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>google-central-plugin-repo</id>
+                    <name>Google Central Mirror Plugins</name>
+                    <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>google-mirror-profile</activeProfile>
+    </activeProfiles>
 </settings>
