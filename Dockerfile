@@ -1,10 +1,11 @@
 # Multi-stage Docker build for Spring Boot Backend on Render
-# Stage 1: Build JAR using Maven
+# Stage 1: Build JAR using Maven with Google Mirror (bypasses Maven Central 429 rate limit)
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY settings.xml .
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -s settings.xml
 
 # Stage 2: Minimal Runtime image
 FROM eclipse-temurin:17-jre
