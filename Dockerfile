@@ -11,7 +11,7 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/backend-1.0.0.jar app.jar
 
-# Render assigns dynamic PORT environment variable (defaults to 8080 locally)
-EXPOSE 8080
+# Render assigns dynamic PORT environment variable (Render standard port: 10000, local: 8080)
+EXPOSE 10000 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

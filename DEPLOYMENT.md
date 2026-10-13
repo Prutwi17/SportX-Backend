@@ -19,11 +19,11 @@ Ensure your Aiven MySQL database connection parameters are ready:
 - Port: `10000` to `28000` (e.g. `12345`)
 - User: `avnadmin`
 - Password: `<aiven-mysql-password>`
-- Database Name: `sportx_db`
+- Database Name: `defaultdb`
 
 **JDBC Connection String Format**:
 ```text
-jdbc:mysql://<aiven-host>:<aiven-port>/sportx_db?useSSL=true&requireSSL=true&verifyServerCertificate=false&serverTimezone=UTC
+jdbc:mysql://<aiven-host>:23446/defaultdb?sslMode=REQUIRED&allowPublicKeyRetrieval=true&serverTimezone=UTC
 ```
 
 ---
@@ -44,14 +44,14 @@ jdbc:mysql://<aiven-host>:<aiven-port>/sportx_db?useSSL=true&requireSSL=true&ver
 | Environment Variable Key | Production Example Value | Notes |
 | :--- | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | `prod` | Activates `application-prod.properties` |
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://<aiven-host>:<port>/sportx_db?useSSL=true...` | Aiven MySQL JDBC URL |
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://<aiven-host>:23446/defaultdb?sslMode=REQUIRED&allowPublicKeyRetrieval=true&serverTimezone=UTC` | Aiven MySQL JDBC URL |
 | `SPRING_DATASOURCE_USERNAME` | `avnadmin` | Aiven MySQL Username |
 | `SPRING_DATASOURCE_PASSWORD` | `<your-aiven-password>` | Aiven MySQL Password |
-| `APP_JWT_SECRET` | `<random-64-character-jwt-secret>` | Secret key for signing JWTs |
-| `RAZORPAY_KEY_ID` | `rzp_live_...` or `rzp_test_...` | Razorpay Dashboard Key ID |
-| `RAZORPAY_KEY_SECRET` | `<your-razorpay-secret>` | Razorpay Dashboard Key Secret |
-| `APP_CORS_ALLOWED_ORIGINS` | `https://sportx-frontend.vercel.app` | Vercel Frontend Production Domain |
-| `SEED_DEMO_DATA` | `false` | Prevents overwriting existing database |
+| `APP_JWT_SECRET` | `F5RdCPnFUMc513WuaBnonXHvcGLx23/BpOYQaDEJlo8ablkVZaoN6o/KgbCUk6IQj5pGKf6bWWYWKTsb/AAxvA==` | Production Base64 JWT Secret |
+| `RAZORPAY_KEY_ID` | `rzp_test_TSGosUB78xY1Yu` | Razorpay Key ID |
+| `RAZORPAY_KEY_SECRET` | `1aqUCzC7q04tJ178M1rQew1r` | Razorpay Key Secret |
+| `APP_CORS_ALLOWED_ORIGINS` | `https://sportx-frontend.vercel.app` (or `*`) | Vercel Frontend Domain |
+| `SEED_DEMO_DATA` | `false` | Prevents overwriting existing Aiven 59 products |
 | `SEED_ADMIN` | `false` | Prevents overwriting existing admin account |
 
 6. Click **Create Web Service**. Render will execute the multi-stage Docker build and start the Spring Boot application on dynamic `${PORT}`.
