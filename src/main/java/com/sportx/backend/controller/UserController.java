@@ -3,6 +3,8 @@ package com.sportx.backend.controller;
 import com.sportx.backend.constant.ApiConstants;
 import com.sportx.backend.dto.UserDTO;
 import com.sportx.backend.dto.UserUpdateRequest;
+import com.sportx.backend.entity.User;
+import com.sportx.backend.exception.UnauthorizedException;
 import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -42,6 +44,10 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        User currentUser = securityUtil.getCurrentUser();
+        if (!currentUser.getRole().name().equals("ROLE_ADMIN") && !currentUser.getId().equals(id)) {
+            throw new UnauthorizedException("Access denied to this user profile");
+        }
         return ResponseEntity.ok(userService.getUserById(id));
     }
 }

@@ -41,6 +41,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public root & health check endpoints
                 .requestMatchers("/", "/health", "/api/v1/health").permitAll()
+
+                // Authenticated auth endpoints (change password requires authenticated JWT)
+                .requestMatchers(ApiConstants.AUTH + "/change-password").authenticated()
+
                 // Public endpoints
                 .requestMatchers(ApiConstants.AUTH + "/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
@@ -48,6 +52,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, ApiConstants.CATEGORIES + "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, ApiConstants.BRANDS + "/**").permitAll()
                 .requestMatchers(ApiConstants.REVIEWS + "/public/**").permitAll()
+
+                // Coupon code validation for authenticated users
+                .requestMatchers(HttpMethod.GET, ApiConstants.COUPONS + "/code/**").authenticated()
 
                 // Admin endpoints
                 .requestMatchers(ApiConstants.CATEGORIES + "/**").hasRole("ADMIN")
@@ -62,6 +69,8 @@ public class SecurityConfig {
                 .requestMatchers(ApiConstants.ADMIN + "/**").hasRole("ADMIN")
                 .requestMatchers(ApiConstants.ORDERS + "/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, ApiConstants.ORDERS + "/*/status").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, ApiConstants.ORDERS + "/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, ApiConstants.REVIEWS + "/*/approve").hasRole("ADMIN")
 
                 // Authenticated endpoints
                 .requestMatchers(ApiConstants.USERS + "/**").authenticated()

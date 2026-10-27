@@ -7,6 +7,7 @@ import com.sportx.backend.entity.Review;
 import com.sportx.backend.entity.User;
 import com.sportx.backend.exception.BadRequestException;
 import com.sportx.backend.exception.ResourceNotFoundException;
+import com.sportx.backend.exception.UnauthorizedException;
 import com.sportx.backend.repository.ProductRepository;
 import com.sportx.backend.repository.ReviewRepository;
 import com.sportx.backend.repository.UserRepository;
@@ -79,14 +80,28 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
+    public void deleteReview(Long reviewId, Long currentUserId, boolean isAdmin) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        if (!isAdmin && !review.getUser().getId().equals(currentUserId)) {
+            throw new UnauthorizedException("You are not authorized to delete this review");
+        }
+        Product product = review.getProduct();
+        reviewRepository.delete(review);
+        updateProductRating(product);
+    }
+
+    @Override
     public boolean hasUserReviewedProduct(Long userId, Long productId) {
         return reviewRepository.existsByUserIdAndProductId(userId, productId);
     }
 
     private void updateProductRating(Product product) {
-        double avgRating = reviewRepository.findAverageRatingByProductId(product.getId());
+        Double avgRating = reviewRepository.findAverageRatingByProductId(product.getId());
         int count = reviewRepository.countByProductId(product.getId());
-        product.setAverageRating(avgRating);
+        double rounded = (avgRating != null && avgRating > 0) ? Math.round(avgRating * 10.0) / 10.0 : 0.0;
+        product.setAverageRating(rounded);
         product.setRatingCount(count);
         productRepository.save(product);
     }

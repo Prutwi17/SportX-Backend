@@ -13,4 +13,6 @@ public interface CouponService {
     CouponDTO getCouponByCode(String code);
     void deleteCoupon(Long id);
     BigDecimal calculateDiscount(String code, BigDecimal orderAmount);
+    void incrementCouponUsage(String code);
+    void restoreCouponUsage(String code);
 }

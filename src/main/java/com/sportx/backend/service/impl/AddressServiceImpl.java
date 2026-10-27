@@ -5,11 +5,13 @@ import com.sportx.backend.dto.AddressRequest;
 import com.sportx.backend.entity.Address;
 import com.sportx.backend.entity.User;
 import com.sportx.backend.exception.ResourceNotFoundException;
+import com.sportx.backend.exception.UnauthorizedException;
 import com.sportx.backend.repository.AddressRepository;
 import com.sportx.backend.repository.UserRepository;
 import com.sportx.backend.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,6 +37,17 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    public AddressDTO getAddressById(Long userId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+        if (!address.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to this address");
+        }
+        return mapToDTO(address);
+    }
+
+    @Override
+    @Transactional
     public AddressDTO createAddress(Long userId, AddressRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -61,9 +74,14 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public AddressDTO updateAddress(Long addressId, AddressRequest request) {
+    @Transactional
+    public AddressDTO updateAddress(Long userId, Long addressId, AddressRequest request) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to this address");
+        }
 
         address.setFullName(request.getFullName());
         address.setPhone(request.getPhone());
@@ -75,7 +93,7 @@ public class AddressServiceImpl implements AddressService {
         address.setCountry(request.getCountry());
 
         if (request.isDefault() && !address.isDefault()) {
-            clearOtherDefaults(address.getUser().getId());
+            clearOtherDefaults(userId);
             address.setDefault(true);
         }
 
@@ -84,18 +102,28 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public void deleteAddress(Long addressId) {
-        if (!addressRepository.existsById(addressId)) {
-            throw new ResourceNotFoundException("Address not found");
+    @Transactional
+    public void deleteAddress(Long userId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to this address");
         }
-        addressRepository.deleteById(addressId);
+        addressRepository.delete(address);
     }
 
     @Override
+    @Transactional
     public void setDefaultAddress(Long userId, Long addressId) {
-        clearOtherDefaults(userId);
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to this address");
+        }
+
+        clearOtherDefaults(userId);
         address.setDefault(true);
         addressRepository.save(address);
     }

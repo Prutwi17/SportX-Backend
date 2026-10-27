@@ -10,6 +10,7 @@ import com.sportx.backend.repository.CouponRepository;
 import com.sportx.backend.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -114,10 +115,29 @@ public class CouponServiceImpl implements CouponService {
             discount = coupon.getMaxDiscount();
         }
 
-        coupon.setUsedCount(coupon.getUsedCount() + 1);
-        couponRepository.save(coupon);
-
         return discount;
+    }
+
+    @Override
+    @Transactional
+    public void incrementCouponUsage(String code) {
+        if (code == null || code.isBlank()) return;
+        couponRepository.findByCode(code.toUpperCase()).ifPresent(coupon -> {
+            coupon.setUsedCount(coupon.getUsedCount() + 1);
+            couponRepository.save(coupon);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void restoreCouponUsage(String code) {
+        if (code == null || code.isBlank()) return;
+        couponRepository.findByCode(code.toUpperCase()).ifPresent(coupon -> {
+            if (coupon.getUsedCount() > 0) {
+                coupon.setUsedCount(coupon.getUsedCount() - 1);
+                couponRepository.save(coupon);
+            }
+        });
     }
 
     private CouponDTO mapToDTO(Coupon coupon) {

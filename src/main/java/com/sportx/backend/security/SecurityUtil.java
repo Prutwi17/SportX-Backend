@@ -1,6 +1,7 @@
 package com.sportx.backend.security;
 
 import com.sportx.backend.entity.User;
+import com.sportx.backend.exception.UnauthorizedException;
 import com.sportx.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -15,12 +16,12 @@ public class SecurityUtil {
 
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("No authenticated user found");
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equalsIgnoreCase(auth.getName())) {
+            throw new UnauthorizedException("No authenticated user found");
         }
         String email = auth.getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+                .orElseThrow(() -> new UnauthorizedException("User not found: " + email));
     }
 
     public Long getCurrentUserId() {

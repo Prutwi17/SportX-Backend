@@ -6,6 +6,7 @@ import com.sportx.backend.dto.OrderRequest;
 import com.sportx.backend.dto.OrderStatusRequest;
 import com.sportx.backend.dto.PagedResponse;
 import com.sportx.backend.entity.User;
+import com.sportx.backend.exception.UnauthorizedException;
 import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.OrderService;
 import jakarta.validation.Valid;
@@ -66,19 +67,11 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getStatus()));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        OrderDTO order = orderService.getOrderById(id);
-        verifyOrderAccess(order.getUserId());
-        orderService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
-    }
-
     private void verifyOrderAccess(Long orderUserId) {
         User currentUser = securityUtil.getCurrentUser();
         if (!currentUser.getRole().name().equals("ROLE_ADMIN")
                 && (orderUserId != null && !orderUserId.equals(currentUser.getId()))) {
-            throw new com.sportx.backend.exception.UnauthorizedException("Access denied to this order");
+            throw new UnauthorizedException("Access denied to this order");
         }
     }
 }

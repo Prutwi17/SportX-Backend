@@ -28,7 +28,7 @@ public class AddressController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long id) {
-        return ResponseEntity.ok(addressService.getAddressById(id));
+        return ResponseEntity.ok(addressService.getAddressById(securityUtil.getCurrentUserId(), id));
     }
 
     @PostMapping
@@ -40,12 +40,12 @@ public class AddressController {
     @PutMapping("/{id}")
     public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long id,
                                                      @Valid @RequestBody AddressRequest request) {
-        return ResponseEntity.ok(addressService.updateAddress(id, request));
+        return ResponseEntity.ok(addressService.updateAddress(securityUtil.getCurrentUserId(), id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAddress(@PathVariable Long id) {
-        addressService.deleteAddress(id);
+        addressService.deleteAddress(securityUtil.getCurrentUserId(), id);
         return ResponseEntity.noContent().build();
     }
 

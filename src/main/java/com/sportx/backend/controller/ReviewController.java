@@ -3,6 +3,7 @@ package com.sportx.backend.controller;
 import com.sportx.backend.constant.ApiConstants;
 import com.sportx.backend.dto.ReviewDTO;
 import com.sportx.backend.dto.ReviewRequest;
+import com.sportx.backend.entity.User;
 import com.sportx.backend.security.SecurityUtil;
 import com.sportx.backend.service.ReviewService;
 import jakarta.validation.Valid;
@@ -46,7 +47,9 @@ public class ReviewController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
-        reviewService.deleteReview(id);
+        User currentUser = securityUtil.getCurrentUser();
+        boolean isAdmin = "ROLE_ADMIN".equalsIgnoreCase(currentUser.getRole().name());
+        reviewService.deleteReview(id, currentUser.getId(), isAdmin);
         return ResponseEntity.noContent().build();
     }
 }

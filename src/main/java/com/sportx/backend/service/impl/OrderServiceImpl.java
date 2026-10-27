@@ -125,6 +125,11 @@ public class OrderServiceImpl implements OrderService {
                     .amount(total)
                     .build();
             paymentRepository.save(payment);
+
+            if (request.getCouponCode() != null && !request.getCouponCode().isBlank()
+                    && discount.compareTo(BigDecimal.ZERO) > 0) {
+                couponService.incrementCouponUsage(request.getCouponCode());
+            }
         }
 
         cartItemRepository.deleteByUserId(userId);
@@ -187,16 +192,27 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() == OrderStatus.DELIVERED) {
             throw new BadRequestException("Cannot cancel delivered order");
         }
+        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.OUT_FOR_DELIVERY) {
+            throw new BadRequestException("Cannot cancel an order that is already in transit");
+        }
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new BadRequestException("Order already cancelled");
         }
 
         order.setStatus(OrderStatus.CANCELLED);
 
-        for (OrderItem item : order.getOrderItems()) {
-            Product product = item.getProduct();
-            product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
-            productRepository.save(product);
+        if (order.getOrderItems() != null) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                if (product != null) {
+                    product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                    productRepository.save(product);
+                }
+            }
+        }
+
+        if (order.getCouponCode() != null && !order.getCouponCode().isBlank()) {
+            couponService.restoreCouponUsage(order.getCouponCode());
         }
 
         orderRepository.save(order);
@@ -245,22 +261,24 @@ public class OrderServiceImpl implements OrderService {
         dto.setNotes(order.getNotes());
         dto.setCreatedAt(order.getCreatedAt());
 
-        AddressDTO addressDTO = new AddressDTO();
-        addressDTO.setId(order.getAddress().getId());
-        addressDTO.setFullName(order.getAddress().getFullName());
-        addressDTO.setPhone(order.getAddress().getPhone());
-        addressDTO.setAddressLine1(order.getAddress().getAddressLine1());
-        addressDTO.setAddressLine2(order.getAddress().getAddressLine2());
-        addressDTO.setCity(order.getAddress().getCity());
-        addressDTO.setState(order.getAddress().getState());
-        addressDTO.setZipCode(order.getAddress().getZipCode());
-        addressDTO.setCountry(order.getAddress().getCountry());
-        dto.setAddress(addressDTO);
+        if (order.getAddress() != null) {
+            AddressDTO addressDTO = new AddressDTO();
+            addressDTO.setId(order.getAddress().getId());
+            addressDTO.setFullName(order.getAddress().getFullName());
+            addressDTO.setPhone(order.getAddress().getPhone());
+            addressDTO.setAddressLine1(order.getAddress().getAddressLine1());
+            addressDTO.setAddressLine2(order.getAddress().getAddressLine2());
+            addressDTO.setCity(order.getAddress().getCity());
+            addressDTO.setState(order.getAddress().getState());
+            addressDTO.setZipCode(order.getAddress().getZipCode());
+            addressDTO.setCountry(order.getAddress().getCountry());
+            dto.setAddress(addressDTO);
+        }
 
-        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream().map(item -> {
+        List<OrderItemDTO> itemDTOs = order.getOrderItems() != null ? order.getOrderItems().stream().map(item -> {
             OrderItemDTO itemDTO = new OrderItemDTO();
             itemDTO.setId(item.getId());
-            itemDTO.setProductId(item.getProduct().getId());
+            itemDTO.setProductId(item.getProduct() != null ? item.getProduct().getId() : null);
             itemDTO.setProductName(item.getProductName());
             if (item.getProduct() != null) {
                 itemDTO.setProductDescription(item.getProduct().getDescription());
@@ -273,7 +291,7 @@ public class OrderServiceImpl implements OrderService {
             itemDTO.setPrice(item.getPrice());
             itemDTO.setSubtotal(item.getSubtotal());
             return itemDTO;
-        }).toList();
+        }).toList() : List.of();
         dto.setItems(itemDTOs);
 
         return dto;
